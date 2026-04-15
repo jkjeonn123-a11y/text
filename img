@@ -1,0 +1,36 @@
+def add(a,b):
+    return a+b
+
+
+pytest
+
+
+import unittest
+from app import add
+
+class TestAdd(unittest.TestCase):
+    def test_add(self):
+        self.assertEqual(add(2,3),5)
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Install Dependencies') {
+            steps {
+                bat 'pip3 install -r requirements.txt'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                bat 'python -m unittest'
+            }
+        }
+    }
+}
