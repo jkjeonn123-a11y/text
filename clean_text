@@ -1,0 +1,85 @@
+mkdir ai-hpa
+cd ai-hpa
+touch app.py requirements.txt Dockerfile deployment.yaml service.yaml
+꾆 STEP 2: Open Files
+notepad app.py
+꾆 STEP 3: Add Code
+膆 app.py
+from flask import Flask
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+ return "AI App Running"
+
+if __name__ == "__main__":
+ app.run(host="0.0.0.0", port=5000)
+notepad requirements.txt
+
+膆 requirements.txt
+flask
+notepad Dockerfile
+膆 Dockerfile
+FROM python:3.9
+WORKDIR /app
+COPY . .
+RUN pip install -r requirements.txt
+CMD ["python", "app.py"]
+꾆 STEP 4: Start Docker & Minikube
+ VERY IMPORTANT: Start Docker Desktop first
+Then:
+minikube start --driver=docker
+꾆 STEP 5: Build inside Minikube (MOST IMPORTANT FIX)
+eval $(minikube -p minikube docker-env)
+docker build -t ai-model .
+踰踱踲踳 This step FIXES your ImagePullBackOff error 
+꾆 STEP 6: Deployment YAML
+notepad deployment.yaml
+
+Paste:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: ai-app
+spec:
+ replicas: 2
+ selector:
+ matchLabels:
+ app: ai-app
+ template:
+ metadata:
+ labels:
+ app: ai-app
+ spec:
+ containers:
+ - name: ai-container
+ image: ai-model
+ imagePullPolicy: Never
+ ports:
+ - containerPort: 5000
+꾆 STEP 7: Service YAML
+notepad service.yaml
+
+Paste:
+apiVersion: v1
+kind: Service
+metadata:
+ name: ai-service
+spec:
+ type: NodePort
+ selector:
+ app: ai-app
+ ports:
+ - port: 5000
+ targetPort: 5000
+ nodePort: 30007
+꾆 STEP 8: Apply
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+꾆 STEP 9: Check Pods
+kubectl get pods
+ Expected:
+ai-app-xxxx 1/1 Running
+ai-app-xxxx 1/1 Running
+꾆 STEP 10: Open App
+minikube service ai-service
